@@ -298,6 +298,54 @@ local function updateTeamList()
     teamList.CanvasSize = UDim2.new(0, 0, 0, yPosition)
 end
 
+-- テレポートセクション
+local teleportLabel = Instance.new("TextLabel", frame)
+teleportLabel.Size = UDim2.new(0, 280, 0, 40)
+teleportLabel.Position = UDim2.new(0, 10, 0, 470) -- 適切な位置に調整
+teleportLabel.Text = "テレポート先のプレイヤーID:"
+teleportLabel.TextColor3 = Color3.new(1, 1, 1)
+teleportLabel.BackgroundTransparency = 1
+
+local teleportInput = Instance.new("TextBox", frame)
+teleportInput.Size = UDim2.new(0, 200, 0, 30)
+teleportInput.Position = UDim2.new(0, 10, 0, 510)
+teleportInput.PlaceholderText = "プレイヤーIDを入力"
+teleportInput.Text = ""
+teleportInput.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+teleportInput.TextColor3 = Color3.new(1, 1, 1)
+
+local teleportButton = Instance.new("TextButton", frame)
+teleportButton.Size = UDim2.new(0, 80, 0, 30)
+teleportButton.Position = UDim2.new(0, 220, 0, 510)
+teleportButton.Text = "テレポート"
+teleportButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+teleportButton.TextColor3 = Color3.new(1, 1, 1)
+
+teleportButton.MouseButton1Click:Connect(function()
+    local targetId = teleportInput.Text
+    local targetPlayer = nil
+
+    -- 入力されたIDに対応するプレイヤーを探す
+    for _, p in ipairs(Players:GetPlayers()) do
+        if tostring(p.UserId) == targetId then
+            targetPlayer = p
+            break
+        end
+    end
+
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            -- テレポート処理
+            character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+        else
+            warn("テレポート元プレイヤーのキャラクターが無効です")
+        end
+    else
+        warn("指定されたIDのプレイヤーが見つかりません")
+    end
+end)
+
 updateTeamList()
 Teams.TeamAdded:Connect(updateTeamList)
 Teams.TeamRemoved:Connect(updateTeamList)
