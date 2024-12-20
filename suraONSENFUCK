@@ -61,14 +61,13 @@ end)
 
 -- 左CtrlキーでGUI表示/非表示
 local guiVisible = true
-UserInputService.InputBegan:Connect(function(input, gameProcessed)
-    if gameProcessed then return end
+UserInputService.InputBegan:Connect(function(input)
+    -- `gameProcessed` のチェックを外して、左Ctrlキーで動作するようにします
     if input.KeyCode == Enum.KeyCode.LeftControl then
         guiVisible = not guiVisible
         screenGui.Enabled = guiVisible -- すべてのGUIを非表示/表示
     end
 end)
-
 
 -- FOV調整セクション
 local fovLabel = Instance.new("TextLabel", frame)
