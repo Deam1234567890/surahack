@@ -1,0 +1,304 @@
+local Players = game:GetService("Players")
+local Teams = game:GetService("Teams")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+
+-- GUIの作成
+local screenGui = Instance.new("ScreenGui", player.PlayerGui)
+screenGui.Name = "ControlGui"
+
+-- メインフレーム (ドラッグ可能にする)
+local frame = Instance.new("Frame", screenGui)
+frame.Size = UDim2.new(0, 300, 0, 700)  -- 高さを調整
+frame.Position = UDim2.new(0.5, -150, 0.5, -250)
+frame.BackgroundColor3 = Color3.new(0.1, 0.1, 0.1)
+frame.BorderSizePixel = 0
+
+-- タイトルバー
+local titleBar = Instance.new("Frame", frame)
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+titleBar.BorderSizePixel = 0
+
+local titleLabel = Instance.new("TextLabel", titleBar)
+titleLabel.Size = UDim2.new(1, 0, 1, 0)
+titleLabel.Text = "スラ温泉荒らしチート"
+titleLabel.TextColor3 = Color3.new(1, 1, 1)
+titleLabel.TextScaled = true
+titleLabel.BackgroundTransparency = 1
+
+-- ドラッグ機能
+local isDragging = false
+local dragStart, startPos
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        -- ドラッグ開始
+        isDragging = true
+        dragStart = input.Position
+        startPos = frame.Position
+    end
+end)
+
+titleBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        -- ドラッグ終了
+        isDragging = false
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if isDragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        frame.Position = UDim2.new(
+            startPos.X.Scale,
+            startPos.X.Offset + delta.X,
+            startPos.Y.Scale,
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end)
+
+-- 左CtrlキーでGUI表示/非表示
+local guiVisible = true
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.LeftControl then
+        guiVisible = not guiVisible
+        screenGui.Enabled = guiVisible -- すべてのGUIを非表示/表示
+    end
+end)
+
+
+-- FOV調整セクション
+local fovLabel = Instance.new("TextLabel", frame)
+fovLabel.Size = UDim2.new(0, 280, 0, 40)
+fovLabel.Position = UDim2.new(0, 10, 0, 350)
+fovLabel.Text = "視野角 (FOV):"
+fovLabel.TextColor3 = Color3.new(1, 1, 1)
+fovLabel.BackgroundTransparency = 1
+
+local fovInput = Instance.new("TextBox", frame)
+fovInput.Size = UDim2.new(0, 280, 0, 30)
+fovInput.Position = UDim2.new(0, 10, 0, 400)
+fovInput.PlaceholderText = "FOVを入力"
+fovInput.Text = ""
+fovInput.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+fovInput.TextColor3 = Color3.new(1, 1, 1)
+
+-- FOVが変更される処理
+fovInput.FocusLost:Connect(function(enterPressed)
+    if enterPressed then
+        local fovValue = tonumber(fovInput.Text)
+        if fovValue and fovValue > 0 then
+            -- 正しい数値が入力された場合に視野角を変更
+            workspace.CurrentCamera.FieldOfView = fovValue
+        else
+            warn("無効なFOV値です")
+        end
+    end
+end)
+
+-- ESP機能セクション
+local espButton = Instance.new("TextButton", frame)
+espButton.Size = UDim2.new(0, 280, 0, 40)
+espButton.Position = UDim2.new(0, 10, 0, 320)
+espButton.Text = "ESP"
+espButton.BackgroundColor3 = Color3.new(0, 0.8, 0)
+espButton.TextColor3 = Color3.new(1, 1, 1)
+
+local espEnabled = false
+local originalTransparency = {}
+
+local function toggleESP()
+    espEnabled = not espEnabled
+    if espEnabled then
+        -- ESPを有効にする処理
+        for _, part in pairs(workspace:GetDescendants()) do
+            if part:IsA("Part") and part.Parent and part.Parent:FindFirstChild("Humanoid") == nil then
+                -- プレイヤー以外のパーツの透明度を変更
+                originalTransparency[part] = part.Transparency
+                part.Transparency = 0.2
+                part.CanCollide = false
+            end
+        end
+    else
+        -- ESPを無効にする処理
+        for part, original in pairs(originalTransparency) do
+            if part and part.Parent then
+                part.Transparency = original
+                part.CanCollide = true
+            end
+        end
+        originalTransparency = {}
+    end
+end
+
+espButton.MouseButton1Click:Connect(function()
+    toggleESP()
+end)
+
+-- プレイヤーのパーツをESP視認状態にする
+local function createPlayerESP(player)
+    local char = player.Character
+    if char and char:FindFirstChild("HumanoidRootPart") then
+        local espPart = Instance.new("Part")
+        espPart.Size = Vector3.new(3, 3, 3)
+        espPart.Shape = Enum.PartType.Ball
+        espPart.Anchored = true
+        espPart.CanCollide = false
+        espPart.BrickColor = BrickColor.new("Bright blue")
+        espPart.Parent = workspace
+        espPart.CFrame = char.HumanoidRootPart.CFrame
+        espPart.Name = player.Name .. "_ESP"
+        
+        -- ESPがプレイヤーの動きに合わせて追従
+        game:GetService("RunService").Heartbeat:Connect(function()
+            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                espPart.CFrame = player.Character.HumanoidRootPart.CFrame
+            end
+        end)
+    end
+end
+
+-- プレイヤーが入ってきたときにESPを表示
+Players.PlayerAdded:Connect(function(player)
+    player.CharacterAdded:Connect(function()
+        if espEnabled then
+            createPlayerESP(player)
+        end
+    end)
+end)
+
+-- 歩行スピード変更セクション
+local walkSpeedLabel = Instance.new("TextLabel", frame)
+walkSpeedLabel.Size = UDim2.new(0, 280, 0, 40)
+walkSpeedLabel.Position = UDim2.new(0, 10, 0, 40)
+walkSpeedLabel.Text = "歩行スピード変更:"
+walkSpeedLabel.TextColor3 = Color3.new(1, 1, 1)
+walkSpeedLabel.BackgroundTransparency = 1
+
+local walkSpeedInput = Instance.new("TextBox", frame)
+walkSpeedInput.Size = UDim2.new(0, 200, 0, 30)
+walkSpeedInput.Position = UDim2.new(0, 10, 0, 80)
+walkSpeedInput.PlaceholderText = "スピードを入力"
+walkSpeedInput.Text = ""
+walkSpeedInput.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+walkSpeedInput.TextColor3 = Color3.new(1, 1, 1)
+
+local walkSpeedButton = Instance.new("TextButton", frame)
+walkSpeedButton.Size = UDim2.new(0, 80, 0, 30)
+walkSpeedButton.Position = UDim2.new(0, 220, 0, 80)
+walkSpeedButton.Text = "設定"
+walkSpeedButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+walkSpeedButton.TextColor3 = Color3.new(1, 1, 1)
+
+walkSpeedButton.MouseButton1Click:Connect(function()
+    local speed = tonumber(walkSpeedInput.Text)
+    if speed and speed > 0 then
+        local character = player.Character
+        if character and character:FindFirstChild("Humanoid") then
+            character.Humanoid.WalkSpeed = speed
+        end
+    else
+        warn("無効なスピード値です")
+    end
+end)
+
+-- Admin Scriptボタン
+local adminButton = Instance.new("TextButton", frame)
+adminButton.Size = UDim2.new(0, 280, 0, 40)
+adminButton.Position = UDim2.new(0, 10, 0, 130)
+adminButton.Text = "Admin Script"
+adminButton.BackgroundColor3 = Color3.new(0, 0.8, 0)
+adminButton.TextColor3 = Color3.new(1, 1, 1)
+
+adminButton.MouseButton1Click:Connect(function()
+    -- Admin Scriptを実行
+    local success, errorMessage = pcall(function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source'))()
+    end)
+    
+    if not success then
+        warn("Admin script execution failed: " .. errorMessage)
+    end
+end)
+
+-- TP TOOLセクション
+local tpToolButton = Instance.new("TextButton", frame)
+tpToolButton.Size = UDim2.new(0, 280, 0, 40)
+tpToolButton.Position = UDim2.new(0, 10, 0, 180)
+tpToolButton.Text = "TP TOOLを追加"
+tpToolButton.BackgroundColor3 = Color3.new(0, 0.8, 1)
+tpToolButton.TextColor3 = Color3.new(1, 1, 1)
+
+tpToolButton.MouseButton1Click:Connect(function()
+    local tool = Instance.new("Tool")
+    tool.Name = "TP Tool"
+    tool.RequiresHandle = false
+
+    tool.Activated:Connect(function()
+        local mouse = player:GetMouse()
+        if mouse and mouse.Hit then
+            local targetPosition = mouse.Hit.p
+            local character = player.Character
+            if character and character:FindFirstChild("HumanoidRootPart") then
+                character.HumanoidRootPart.CFrame = CFrame.new(targetPosition)
+            end
+        end
+    end)
+
+    tool.Parent = player.Backpack
+end)
+
+-- チーム変更セクション
+local teamLabel = Instance.new("TextLabel", frame)
+teamLabel.Size = UDim2.new(0, 280, 0, 30)
+teamLabel.Position = UDim2.new(0, 10, 0, 230)
+teamLabel.Text = "チーム変更:"
+teamLabel.TextColor3 = Color3.new(1, 1, 1)
+teamLabel.BackgroundTransparency = 1
+
+local teamDropdown = Instance.new("TextButton", frame)
+teamDropdown.Size = UDim2.new(0, 280, 0, 40)
+teamDropdown.Position = UDim2.new(0, 10, 0, 270)
+teamDropdown.Text = "チームを選択"
+teamDropdown.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+teamDropdown.TextColor3 = Color3.new(1, 1, 1)
+
+local teamList = Instance.new("ScrollingFrame", frame)
+teamList.Size = UDim2.new(0, 280, 0, 200)
+teamList.Position = UDim2.new(0, 10, 0, 320)
+teamList.Visible = false
+teamList.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
+teamList.BorderSizePixel = 0
+teamList.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+teamDropdown.MouseButton1Click:Connect(function()
+    teamList.Visible = not teamList.Visible
+end)
+
+local function updateTeamList()
+    teamList:ClearAllChildren()
+    local yPosition = 0
+
+    for _, team in ipairs(Teams:GetTeams()) do
+        local button = Instance.new("TextButton", teamList)
+        button.Size = UDim2.new(0, 260, 0, 30)
+        button.Position = UDim2.new(0, 10, 0, yPosition)
+        button.Text = team.Name
+        button.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
+        button.TextColor3 = Color3.new(1, 1, 1)
+        yPosition = yPosition + 35
+
+        button.MouseButton1Click:Connect(function()
+            player.Team = team
+            teamList.Visible = false
+        end)
+    end
+    teamList.CanvasSize = UDim2.new(0, 0, 0, yPosition)
+end
+
+updateTeamList()
+Teams.TeamAdded:Connect(updateTeamList)
+Teams.TeamRemoved:Connect(updateTeamList)
