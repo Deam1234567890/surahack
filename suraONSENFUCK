@@ -346,20 +346,18 @@ Teams.TeamRemoved:Connect(updateTeamList)
 -- Flyボタンセクション
 local flyButton = Instance.new("TextButton", frame)
 flyButton.Size = UDim2.new(0, 280, 0, 40)
-flyButton.Position = UDim2.new(0, 10, 0, 590)
-flyButton.Text = "Fly 機能を有効化"
-flyButton.BackgroundColor3 = Color3.new(0, 0.8, 0.8)
+flyButton.Position = UDim2.new(0, 10, 0, 630) -- Flyボタンの位置
+flyButton.Text = "Fly"
+flyButton.BackgroundColor3 = Color3.new(0.2, 0.6, 1)
 flyButton.TextColor3 = Color3.new(1, 1, 1)
 
 flyButton.MouseButton1Click:Connect(function()
-    -- Flyスクリプトを実行
+    -- Fly GUIのスクリプトをロードして実行
     local success, errorMessage = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
     end)
 
     if not success then
-        warn("Flyスクリプトの実行に失敗しました: " .. errorMessage)
-    else
-        print("Flyスクリプトが正常に実行されました")
+        warn("Flyスクリプトの実行に失敗しました: " .. tostring(errorMessage))
     end
 end)
