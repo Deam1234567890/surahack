@@ -98,75 +98,34 @@ fovInput.FocusLost:Connect(function(enterPressed)
     end
 end)
 
--- ESP機能セクション
+-- ESP機能セクション修正
 local espButton = Instance.new("TextButton", frame)
 espButton.Size = UDim2.new(0, 280, 0, 40)
 espButton.Position = UDim2.new(0, 10, 0, 320)
-espButton.Text = "ESP"
+espButton.Text = "ESP ON"
 espButton.BackgroundColor3 = Color3.new(0, 0.8, 0)
 espButton.TextColor3 = Color3.new(1, 1, 1)
 
 local espEnabled = false
-local originalTransparency = {}
-
-local function toggleESP()
-    espEnabled = not espEnabled
-    if espEnabled then
-        -- ESPを有効にする処理
-        for _, part in pairs(workspace:GetDescendants()) do
-            if part:IsA("Part") and part.Parent and part.Parent:FindFirstChild("Humanoid") == nil then
-                -- プレイヤー以外のパーツの透明度を変更
-                originalTransparency[part] = part.Transparency
-                part.Transparency = 0.2
-                part.CanCollide = false
-            end
-        end
-    else
-        -- ESPを無効にする処理
-        for part, original in pairs(originalTransparency) do
-            if part and part.Parent then
-                part.Transparency = original
-                part.CanCollide = true
-            end
-        end
-        originalTransparency = {}
-    end
-end
 
 espButton.MouseButton1Click:Connect(function()
-    toggleESP()
-end)
-
--- プレイヤーのパーツをESP視認状態にする
-local function createPlayerESP(player)
-    local char = player.Character
-    if char and char:FindFirstChild("HumanoidRootPart") then
-        local espPart = Instance.new("Part")
-        espPart.Size = Vector3.new(3, 3, 3)
-        espPart.Shape = Enum.PartType.Ball
-        espPart.Anchored = true
-        espPart.CanCollide = false
-        espPart.BrickColor = BrickColor.new("Bright blue")
-        espPart.Parent = workspace
-        espPart.CFrame = char.HumanoidRootPart.CFrame
-        espPart.Name = player.Name .. "_ESP"
-        
-        -- ESPがプレイヤーの動きに合わせて追従
-        game:GetService("RunService").Heartbeat:Connect(function()
-            if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
-                espPart.CFrame = player.Character.HumanoidRootPart.CFrame
-            end
+    espEnabled = not espEnabled
+    if espEnabled then
+        espButton.Text = "ESP OFF"
+        espButton.BackgroundColor3 = Color3.new(0.8, 0, 0)
+        -- 外部ESPスクリプトをロード
+        local success, errorMessage = pcall(function()
+            loadstring(game:HttpGet('https://raw.githubusercontent.com/Lucasfin000/SpaceHub/main/UESP'))()
         end)
-    end
-end
-
--- プレイヤーが入ってきたときにESPを表示
-Players.PlayerAdded:Connect(function(player)
-    player.CharacterAdded:Connect(function()
-        if espEnabled then
-            createPlayerESP(player)
+        if not success then
+            warn("ESP script execution failed: " .. tostring(errorMessage))
         end
-    end)
+    else
+        espButton.Text = "ESP ON"
+        espButton.BackgroundColor3 = Color3.new(0, 0.8, 0)
+        -- ESPをリセットする処理（特定のリセット手順が必要な場合は追記）
+        warn("ESP has been disabled (implement additional cleanup logic if needed).")
+    end
 end)
 
 -- 歩行スピード変更セクション
@@ -298,40 +257,63 @@ local function updateTeamList()
     teamList.CanvasSize = UDim2.new(0, 0, 0, yPosition)
 end
 
--- プレイヤーの場所にテレポートするセクション
+-- テレポートセクション修正
+local teleportLabel = Instance.new("TextLabel", frame)
+teleportLabel.Size = UDim2.new(0, 280, 0, 40)
+teleportLabel.Position = UDim2.new(0, 10, 0, 470)
+teleportLabel.Text = "プレイヤー検索 (ID一部入力):"
+teleportLabel.TextColor3 = Color3.new(1, 1, 1)
+teleportLabel.BackgroundTransparency = 1
+
 local teleportInput = Instance.new("TextBox", frame)
 teleportInput.Size = UDim2.new(0, 200, 0, 30)
-teleportInput.Position = UDim2.new(0, 10, 0, 440)
-teleportInput.PlaceholderText = "プレイヤーIDを入力"
+teleportInput.Position = UDim2.new(0, 10, 0, 500)
+teleportInput.PlaceholderText = "IDの一部を入力"
 teleportInput.Text = ""
 teleportInput.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
 teleportInput.TextColor3 = Color3.new(1, 1, 1)
 
 local teleportButton = Instance.new("TextButton", frame)
 teleportButton.Size = UDim2.new(0, 80, 0, 30)
-teleportButton.Position = UDim2.new(0, 220, 0, 440)
+teleportButton.Position = UDim2.new(0, 220, 0, 500)
 teleportButton.Text = "テレポート"
 teleportButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
 teleportButton.TextColor3 = Color3.new(1, 1, 1)
 
 teleportButton.MouseButton1Click:Connect(function()
-    local targetName = teleportInput.Text
-    local targetPlayer = Players:FindFirstChild(targetName)
+    local inputText = teleportInput.Text:lower()
+    if inputText == "" then
+        warn("IDを入力してください")
+        return
+    end
 
-    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local character = player.Character
-        if character and character:FindFirstChild("HumanoidRootPart") then
-            character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+    local matchedPlayer = nil
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Name:lower():find(inputText, 1, true) then
+            matchedPlayer = player
+            break
+        end
+    end
+
+    if matchedPlayer then
+        local targetCharacter = matchedPlayer.Character
+        local localCharacter = player.Character
+        if targetCharacter and localCharacter and targetCharacter:FindFirstChild("HumanoidRootPart") and localCharacter:FindFirstChild("HumanoidRootPart") then
+            -- 自分をターゲットのHumanoidRootPartの位置に移動
+            localCharacter.HumanoidRootPart.CFrame = targetCharacter.HumanoidRootPart.CFrame
+            print("テレポート成功: " .. matchedPlayer.Name)
+        else
+            warn("テレポート失敗: ターゲットまたは自分のキャラクターが見つかりません")
         end
     else
-        warn("プレイヤーが見つかりません")
+        warn("一致するプレイヤーが見つかりません")
     end
 end)
 
 -- Toxic Chatセクション
 local toxicChatButton = Instance.new("TextButton", frame)
 toxicChatButton.Size = UDim2.new(0, 280, 0, 40)
-toxicChatButton.Position = UDim2.new(0, 10, 0, 480)
+toxicChatButton.Position = UDim2.new(0, 10, 0, 440)
 toxicChatButton.Text = "Toxic Chat"
 toxicChatButton.BackgroundColor3 = Color3.new(1, 0, 0)
 toxicChatButton.TextColor3 = Color3.new(1, 1, 1)
