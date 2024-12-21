@@ -299,16 +299,9 @@ local function updateTeamList()
 end
 
 -- プレイヤーの場所にテレポートするセクション
-local teleportLabel = Instance.new("TextLabel", frame)
-teleportLabel.Size = UDim2.new(0, 280, 0, 40)
-teleportLabel.Position = UDim2.new(0, 10, 0, 600)
-teleportLabel.Text = "プレイヤーの場所にテレポート:"
-teleportLabel.TextColor3 = Color3.new(1, 1, 1)
-teleportLabel.BackgroundTransparency = 1
-
 local teleportInput = Instance.new("TextBox", frame)
 teleportInput.Size = UDim2.new(0, 200, 0, 30)
-teleportInput.Position = UDim2.new(0, 10, 0, 680)
+teleportInput.Position = UDim2.new(0, 10, 0, 440)
 teleportInput.PlaceholderText = "プレイヤーIDを入力"
 teleportInput.Text = ""
 teleportInput.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
@@ -316,7 +309,7 @@ teleportInput.TextColor3 = Color3.new(1, 1, 1)
 
 local teleportButton = Instance.new("TextButton", frame)
 teleportButton.Size = UDim2.new(0, 80, 0, 30)
-teleportButton.Position = UDim2.new(0, 220, 0, 680)
+teleportButton.Position = UDim2.new(0, 220, 0, 440)
 teleportButton.Text = "テレポート"
 teleportButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
 teleportButton.TextColor3 = Color3.new(1, 1, 1)
@@ -338,7 +331,7 @@ end)
 -- Toxic Chatセクション
 local toxicChatButton = Instance.new("TextButton", frame)
 toxicChatButton.Size = UDim2.new(0, 280, 0, 40)
-toxicChatButton.Position = UDim2.new(0, 10, 0, 780)
+toxicChatButton.Position = UDim2.new(0, 10, 0, 480)
 toxicChatButton.Text = "Toxic Chat"
 toxicChatButton.BackgroundColor3 = Color3.new(1, 0, 0)
 toxicChatButton.TextColor3 = Color3.new(1, 1, 1)
