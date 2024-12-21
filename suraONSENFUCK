@@ -338,7 +338,7 @@ end)
 -- Toxic Chatセクション
 local toxicChatButton = Instance.new("TextButton", frame)
 toxicChatButton.Size = UDim2.new(0, 280, 0, 40)
-toxicChatButton.Position = UDim2.new(0, 10, 0, 680)
+toxicChatButton.Position = UDim2.new(0, 10, 0, 780)
 toxicChatButton.Text = "Toxic Chat"
 toxicChatButton.BackgroundColor3 = Color3.new(1, 0, 0)
 toxicChatButton.TextColor3 = Color3.new(1, 1, 1)
@@ -351,16 +351,18 @@ local toxicMessages = {
 }
 
 local function sendToxicMessage()
-    -- チャットにランダムなメッセージを送信
+    -- ランダムなメッセージを選ぶ
     local randomMessage = toxicMessages[math.random(1, #toxicMessages)]
-    game:GetService("ReplicatedStorage").DefaultChatSystemChatEvents.SayMessageRequest:FireServer(randomMessage, "All")
+    
+    -- チャットイベントをトリガーしてメッセージを発信
+    local chatEvent = game:GetService("ReplicatedStorage"):WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest")
+    chatEvent:FireServer(randomMessage, "All")
 end
 
 toxicChatButton.MouseButton1Click:Connect(function()
     -- ボタンを押したときにランダムメッセージを発言
     sendToxicMessage()
 end)
-
 
 updateTeamList()
 Teams.TeamAdded:Connect(updateTeamList)
