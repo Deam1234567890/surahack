@@ -298,17 +298,17 @@ local function updateTeamList()
     teamList.CanvasSize = UDim2.new(0, 0, 0, yPosition)
 end
 
--- プレイヤーのテレポートセクション
+-- プレイヤーの場所にテレポートするセクション
 local teleportLabel = Instance.new("TextLabel", frame)
-teleportLabel.Size = UDim2.new(0, 280, 0, 30)
-teleportLabel.Position = UDim2.new(0, 10, 0, 500)
-teleportLabel.Text = "プレイヤーIDでテレポート:"
+teleportLabel.Size = UDim2.new(0, 280, 0, 40)
+teleportLabel.Position = UDim2.new(0, 10, 0, 640)
+teleportLabel.Text = "プレイヤーの場所にテレポート:"
 teleportLabel.TextColor3 = Color3.new(1, 1, 1)
 teleportLabel.BackgroundTransparency = 1
 
 local teleportInput = Instance.new("TextBox", frame)
 teleportInput.Size = UDim2.new(0, 200, 0, 30)
-teleportInput.Position = UDim2.new(0, 10, 0, 540)
+teleportInput.Position = UDim2.new(0, 10, 0, 680)
 teleportInput.PlaceholderText = "プレイヤーIDを入力"
 teleportInput.Text = ""
 teleportInput.BackgroundColor3 = Color3.new(0.2, 0.2, 0.2)
@@ -316,7 +316,7 @@ teleportInput.TextColor3 = Color3.new(1, 1, 1)
 
 local teleportButton = Instance.new("TextButton", frame)
 teleportButton.Size = UDim2.new(0, 80, 0, 30)
-teleportButton.Position = UDim2.new(0, 220, 0, 540)
+teleportButton.Position = UDim2.new(0, 220, 0, 680)
 teleportButton.Text = "テレポート"
 teleportButton.BackgroundColor3 = Color3.new(0.3, 0.3, 0.3)
 teleportButton.TextColor3 = Color3.new(1, 1, 1)
@@ -326,37 +326,15 @@ teleportButton.MouseButton1Click:Connect(function()
     local targetPlayer = Players:FindFirstChild(targetName)
 
     if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
-        local targetHRP = targetPlayer.Character.HumanoidRootPart
-        local localHRP = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-        
-        if localHRP then
-            targetHRP.CFrame = localHRP.CFrame
-        else
-            warn("あなたのキャラクターにHumanoidRootPartが見つかりません。")
+        local character = player.Character
+        if character and character:FindFirstChild("HumanoidRootPart") then
+            character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
         end
     else
-        warn("ターゲットプレイヤーが見つからないか、正しいIDを入力してください。")
-    end
-end)
-
--- Fly Scriptボタン
-local FlyButton = Instance.new("TextButton", frame)
-FlyButton.Size = UDim2.new(0, 280, 0, 40)
-FlyButton.Position = UDim2.new(0, 10, 0, 590)
-FlyButton.Text = "Fly"
-FlyButton.BackgroundColor3 = Color3.new(0, 0.8, 0)
-FlyButton.TextColor3 = Color3.new(1, 1, 1)
-
-FlyButton.MouseButton1Click:Connect(function()
-    -- Fly Scriptを実行
-    local success, errorMessage = pcall(function()
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
-    if not success then
-        warn("Fly script execution failed: " .. errorMessage)
+        warn("プレイヤーが見つかりません")
     end
 end)
 
 updateTeamList()
-
 Teams.TeamAdded:Connect(updateTeamList)
 Teams.TeamRemoved:Connect(updateTeamList)
