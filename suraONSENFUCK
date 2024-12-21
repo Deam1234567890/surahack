@@ -339,25 +339,24 @@ teleportButton.MouseButton1Click:Connect(function()
     end
 end)
 
-updateTeamList()
-Teams.TeamAdded:Connect(updateTeamList)
-Teams.TeamRemoved:Connect(updateTeamList)
+-- Fly Scriptボタン
+local FlyButton = Instance.new("TextButton", frame)
+FlyButton.Size = UDim2.new(0, 280, 0, 40)
+FlyButton.Position = UDim2.new(0, 10, 0, 590)
+FlyButton.Text = "Fly"
+FlyButton.BackgroundColor3 = Color3.new(0, 0.8, 0)
+FlyButton.TextColor3 = Color3.new(1, 1, 1)
 
--- Flyボタンセクション
-local flyButton = Instance.new("TextButton", frame)
-flyButton.Size = UDim2.new(0, 280, 0, 40)
-flyButton.Position = UDim2.new(0, 10, 0, 630) -- Flyボタンの位置
-flyButton.Text = "Fly"
-flyButton.BackgroundColor3 = Color3.new(0.2, 0.6, 1)
-flyButton.TextColor3 = Color3.new(1, 1, 1)
-
-flyButton.MouseButton1Click:Connect(function()
-    -- Fly GUIのスクリプトをロードして実行
+FlyButton.MouseButton1Click:Connect(function()
+    -- Fly Scriptを実行
     local success, errorMessage = pcall(function()
         loadstring(game:HttpGet("https://raw.githubusercontent.com/XNEOFF/FlyGuiV3/main/FlyGuiV3.txt"))()
-    end)
-
     if not success then
-        warn("Flyスクリプトの実行に失敗しました: " .. tostring(errorMessage))
+        warn("Fly script execution failed: " .. errorMessage)
     end
 end)
+
+updateTeamList()
+
+Teams.TeamAdded:Connect(updateTeamList)
+Teams.TeamRemoved:Connect(updateTeamList)
